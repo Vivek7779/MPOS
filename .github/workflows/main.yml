@@ -20,11 +20,8 @@ jobs:
         java-version: '17'
         distribution: 'adopt'
 
-    - name: Setup ChromeDriver
-      uses: nanasess/setup-chromedriver@v1
-
-    - name: Setup ChromeDriver
-      uses: nanasess/setup-chromedriver@v1
+    - name: Setup Chromedriver
+      uses: nanasess/setup-chromedriver@v1.3.0
 
       with:
         chrome-version: 'latest'
