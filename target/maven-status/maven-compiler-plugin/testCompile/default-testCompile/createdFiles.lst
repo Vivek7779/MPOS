@@ -1,4 +1,0 @@
-base\BaseTest.class
-tests\LoginTest.class
-pages\LoginPage.class
-locators\Locators.class
