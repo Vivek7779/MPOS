@@ -1,3 +1,2 @@
-utils\BrowserFactory.class
 utils\ConfigReader.class
-utils\LocatorReader.class
+utils\BrowserFactory.class
