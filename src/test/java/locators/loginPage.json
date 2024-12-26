@@ -1,0 +1,7 @@
+/*{
+    "usernameField": "#username",  // Using CSS selector
+    "passwordField": "#password",  // Using CSS selector
+    "loginButton": "button[type='submit']",  // Using CSS selector
+    "errorMessage": "//div[@class='error']",  // Using XPath
+    "rememberMeCheckbox": "//input[@type='checkbox']"  // Using XPath
+}*/
