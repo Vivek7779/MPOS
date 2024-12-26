@@ -8,7 +8,7 @@ public class ConfigReader {
     private static Properties properties;
 
     static {
-        try (FileInputStream fis = new FileInputStream("C:\\Users\\admin\\eclipse-workspace\\MPOS\\src\\main\\resources\\config.properties")) {
+        try (FileInputStream fis = new FileInputStream("D:\\MPOSE Automation\\MPOS\\src\\main\\resources\\config.properties")) {
             properties = new Properties();
             properties.load(fis);
         } catch (IOException e) {
