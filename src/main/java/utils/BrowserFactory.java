@@ -16,7 +16,7 @@ public class BrowserFactory {
     public static WebDriver getDriver(String browser) throws IOException {
     	// Load the config.properties file
         Properties properties = new Properties();
-        FileInputStream configFile = new FileInputStream("C:\\Users\\admin\\eclipse-workspace\\MPOS\\src\\main\\resources\\config.properties");
+        FileInputStream configFile = new FileInputStream("D:\\MPOSE Automation\\MPOS\\src\\main\\resources\\config.properties");
         properties.load(configFile);
  
         // Get the browser property from the config file
