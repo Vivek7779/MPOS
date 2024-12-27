@@ -1,46 +1,28 @@
-name: Java CI with JDK 17 and Chromedriver
+stages:
+  - test
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository
+    - target/
 
-    steps:
-    # 1. Checkout the repository
-    - name: Checkout repository
-      uses: actions/checkout@v3
+before_script:
+  - apt-get update -yqq
+  - apt-get install -yqq openjdk-17-jdk maven
+  - java -version
+  - mvn -version
 
-    # 2. Set up JDK 17
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    # 3. Set up Chrome and Chromedriver
-    - name: Set up Chrome and Chromedriver
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y google-chrome-stable
-        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-        echo "Installed Chrome version: $CHROME_VERSION"
-        
-        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-        echo "Fetching Chromedriver version: $CHROMEDRIVER_VERSION"
-
-        curl -s -L -o chromedriver_linux64.zip "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
-        unzip chromedriver_linux64.zip -d /usr/local/bin/
-        rm chromedriver_linux64.zip
-        chmod +x /usr/local/bin/chromedriver
-        chromedriver --version
-
-    # 4. Run Tests
-    - name: Run Tests
-      run: mvn clean test
+# Define the test job
+Test:
+  stage: test
+  tags:
+    - pmpeople
+  image: maven:3.9.4-eclipse-temurin-17
+  script:
+    - mvn clean test
+  only:
+    - MPOS
