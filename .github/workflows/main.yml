@@ -1,4 +1,4 @@
-name: Java CI with Selenium and Chromedriver
+name: Java CI with Selenium and EdgeDriver
 
 on:
   push:
@@ -29,16 +29,18 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Install Google Chrome and Chromedriver
-      - name: Install Chrome and Chromedriver
+      # Step 3: Install Microsoft Edge and EdgeDriver
+      - name: Install Microsoft Edge and EdgeDriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-          sudo apt-get install -y chromium-chromedriver
-          echo 'Adding Chromedriver to PATH...'
-          sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
-          google-chrome --version
-          chromedriver --version
+          sudo apt-get install -y microsoft-edge-stable
+          EDGE_VERSION=$(microsoft-edge --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+          DRIVER_VERSION=$(curl -s "https://msedgedriver.azureedge.net/LATEST_RELEASE_$EDGE_VERSION")
+          curl -s -L -o msedgedriver.zip "https://msedgedriver.azureedge.net/$DRIVER_VERSION/edgedriver_linux64.zip"
+          unzip msedgedriver.zip -d /usr/bin/
+          rm msedgedriver.zip
+          microsoft-edge --version
+          edgedriver --version
 
       # Step 4: Set up Maven and run tests
       - name: Run Tests
