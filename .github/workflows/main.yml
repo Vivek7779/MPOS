@@ -1,4 +1,4 @@
-name: Java CI with Selenium and FirefoxDriver
+name: Java CI with Selenium and ChromeDriver
 
 on:
   push:
@@ -17,11 +17,15 @@ jobs:
       MAVEN_OPTS: "-Dmaven.repo.local=$GITHUB_WORKSPACE/.m2/repository"
 
     steps:
-      # Step 1: Check out the repository
+      # Step 1: Enable Debug Logging
+      - name: Enable Debug Logging
+        run: echo "DEBUGGING_ENABLED=true" >> $GITHUB_ENV
+
+      # Step 2: Check out the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up JDK 17
+      # Step 3: Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -29,35 +33,67 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Install Firefox and Geckodriver
-      - name: Install Firefox and Geckodriver
+      # Step 4: Install Google Chrome and ChromeDriver with Debugging
+      - name: Install Google Chrome and ChromeDriver
         run: |
+          set -x  # Enable shell debugging
+          echo "Starting installation of Google Chrome and ChromeDriver..."
+
+          # Update system and install Google Chrome
           sudo apt-get update
-          sudo apt-get install -y firefox || echo "Firefox is already installed"
-          
-          # Fetch the latest Geckodriver release version
-          GECKODRIVER_VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
-          if [ -z "$GECKODRIVER_VERSION" ]; then
-            echo "Failed to fetch Geckodriver version."
+          sudo apt-get install -y google-chrome-stable || echo "Chrome is already installed"
+
+          # Debug: Print Chrome version
+          echo "Google Chrome version:"
+          google-chrome --version
+
+          # Fetch the latest ChromeDriver release version
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          if [ -z "$DRIVER_VERSION" ]; then
+            echo "Failed to fetch ChromeDriver version."
             exit 1
           fi
-          echo "Resolved Geckodriver version: $GECKODRIVER_VERSION"
+          echo "Resolved ChromeDriver version: $DRIVER_VERSION"
 
-          # Download and install Geckodriver
-          DRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/$GECKODRIVER_VERSION/geckodriver-$GECKODRIVER_VERSION-linux64.tar.gz"
-          curl -s -L -o geckodriver.tar.gz "$DRIVER_URL"
+          # Debug: Print ChromeDriver download URL
+          DRIVER_URL="https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
+          echo "ChromeDriver download URL: $DRIVER_URL"
+
+          # Download and install ChromeDriver
+          curl -s -L -o chromedriver.zip "$DRIVER_URL"
           if [ $? -ne 0 ]; then
-            echo "Failed to download Geckodriver from $DRIVER_URL."
+            echo "Failed to download ChromeDriver from $DRIVER_URL."
             exit 1
           fi
-          tar -xzf geckodriver.tar.gz -C /usr/bin/ --overwrite
-          sudo chmod +x /usr/bin/geckodriver
-          rm geckodriver.tar.gz
-          firefox --version
-          geckodriver --version
+          unzip -o chromedriver.zip -d /usr/bin/
+          sudo chmod +x /usr/bin/chromedriver
+          rm chromedriver.zip
 
-      # Step 4: Set up Maven and run tests
+          # Debug: Print ChromeDriver version
+          echo "ChromeDriver version:"
+          chromedriver --version
+
+      # Step 5: Debug Environment Variables
+      - name: Debug Environment Variables
+        run: env | sort
+
+      # Step 6: Debug File Structure
+      - name: Debug File Structure
+        run: |
+          echo "File structure of the current directory:"
+          ls -la
+
+      # Step 7: Set up Maven and run tests with Debugging
       - name: Run Tests
         run: |
+          set -x  # Enable shell debugging
+          echo "Running Maven tests..."
           mvn clean test
           mvn install
+
+      # Step 8: Post-Build Debugging
+      - name: Debug Maven Output
+        run: |
+          echo "Maven repository contents:"
+          ls -la $GITHUB_WORKSPACE/.m2/repository
