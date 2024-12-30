@@ -1,4 +1,4 @@
-name: Java CI with Selenium and EdgeDriver
+name: Java CI with Selenium and FirefoxDriver
 
 on:
   push:
@@ -29,40 +29,32 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Install Microsoft Edge and EdgeDriver
-      - name: Install Microsoft Edge and EdgeDriver
+      # Step 3: Install Firefox and Geckodriver
+      - name: Install Firefox and Geckodriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y microsoft-edge-stable || echo "Edge is already installed"
+          sudo apt-get install -y firefox || echo "Firefox is already installed"
           
-          # Detect Microsoft Edge version
-          EDGE_VERSION=$(microsoft-edge --version | grep -oP '\d+\.\d+\.\d+\.\d+')
-          if [ -z "$EDGE_VERSION" ]; then
-            echo "Failed to detect Microsoft Edge version."
+          # Fetch the latest Geckodriver release version
+          GECKODRIVER_VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
+          if [ -z "$GECKODRIVER_VERSION" ]; then
+            echo "Failed to fetch Geckodriver version."
             exit 1
           fi
-          echo "Detected Microsoft Edge version: $EDGE_VERSION"
-          
-          # Fetch EdgeDriver version
-          DRIVER_VERSION=$(curl -s "https://msedgedriver.azureedge.net/LATEST_RELEASE_$EDGE_VERSION")
-          if [ -z "$DRIVER_VERSION" ]; then
-            echo "Failed to fetch EdgeDriver version for Edge $EDGE_VERSION."
-            exit 1
-          fi
-          echo "Resolved EdgeDriver version: $DRIVER_VERSION"
-          
-          # Download and install EdgeDriver
-          DRIVER_URL="https://msedgedriver.azureedge.net/$DRIVER_VERSION/edgedriver_linux64.zip"
-          curl -s -L -o msedgedriver.zip "$DRIVER_URL"
+          echo "Resolved Geckodriver version: $GECKODRIVER_VERSION"
+
+          # Download and install Geckodriver
+          DRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/$GECKODRIVER_VERSION/geckodriver-$GECKODRIVER_VERSION-linux64.tar.gz"
+          curl -s -L -o geckodriver.tar.gz "$DRIVER_URL"
           if [ $? -ne 0 ]; then
-            echo "Failed to download EdgeDriver from $DRIVER_URL."
+            echo "Failed to download Geckodriver from $DRIVER_URL."
             exit 1
           fi
-          unzip -o msedgedriver.zip -d /usr/bin/
-          sudo chmod +x /usr/bin/edgedriver
-          rm msedgedriver.zip
-          microsoft-edge --version
-          edgedriver --version
+          tar -xzf geckodriver.tar.gz -C /usr/bin/
+          sudo chmod +x /usr/bin/geckodriver
+          rm geckodriver.tar.gz
+          firefox --version
+          geckodriver --version
 
       # Step 4: Set up Maven and run tests
       - name: Run Tests
