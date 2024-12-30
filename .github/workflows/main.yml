@@ -50,7 +50,7 @@ jobs:
             echo "Failed to download Geckodriver from $DRIVER_URL."
             exit 1
           fi
-          tar -xzf geckodriver.tar.gz -C /usr/bin/
+          tar -xzf geckodriver.tar.gz -C /usr/bin/ --overwrite
           sudo chmod +x /usr/bin/geckodriver
           rm geckodriver.tar.gz
           firefox --version
