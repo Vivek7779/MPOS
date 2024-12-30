@@ -33,11 +33,33 @@ jobs:
       - name: Install Microsoft Edge and EdgeDriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y microsoft-edge-stable
+          sudo apt-get install -y microsoft-edge-stable || echo "Edge is already installed"
+          
+          # Detect Microsoft Edge version
           EDGE_VERSION=$(microsoft-edge --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+          if [ -z "$EDGE_VERSION" ]; then
+            echo "Failed to detect Microsoft Edge version."
+            exit 1
+          fi
+          echo "Detected Microsoft Edge version: $EDGE_VERSION"
+          
+          # Fetch EdgeDriver version
           DRIVER_VERSION=$(curl -s "https://msedgedriver.azureedge.net/LATEST_RELEASE_$EDGE_VERSION")
-          curl -s -L -o msedgedriver.zip "https://msedgedriver.azureedge.net/$DRIVER_VERSION/edgedriver_linux64.zip"
-          unzip msedgedriver.zip -d /usr/bin/
+          if [ -z "$DRIVER_VERSION" ]; then
+            echo "Failed to fetch EdgeDriver version for Edge $EDGE_VERSION."
+            exit 1
+          fi
+          echo "Resolved EdgeDriver version: $DRIVER_VERSION"
+          
+          # Download and install EdgeDriver
+          DRIVER_URL="https://msedgedriver.azureedge.net/$DRIVER_VERSION/edgedriver_linux64.zip"
+          curl -s -L -o msedgedriver.zip "$DRIVER_URL"
+          if [ $? -ne 0 ]; then
+            echo "Failed to download EdgeDriver from $DRIVER_URL."
+            exit 1
+          fi
+          unzip -o msedgedriver.zip -d /usr/bin/
+          sudo chmod +x /usr/bin/edgedriver
           rm msedgedriver.zip
           microsoft-edge --version
           edgedriver --version
