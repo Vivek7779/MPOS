@@ -47,11 +47,14 @@ jobs:
           echo "Google Chrome version:"
           google-chrome --version
 
+          # Extract major version of Chrome
+          CHROME_VERSION=$(google-chrome --version | grep -oP '^\d+')
+          echo "Resolved Chrome major version: $CHROME_VERSION"
+
           # Fetch the latest ChromeDriver release version
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
           DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
           if [ -z "$DRIVER_VERSION" ]; then
-            echo "Failed to fetch ChromeDriver version."
+            echo "Failed to fetch ChromeDriver version. Please verify the installed Chrome version."
             exit 1
           fi
           echo "Resolved ChromeDriver version: $DRIVER_VERSION"
@@ -90,7 +93,6 @@ jobs:
           set -x  # Enable shell debugging
           echo "Running Maven tests..."
           mvn clean test
-          mvn install
 
       # Step 8: Post-Build Debugging
       - name: Debug Maven Output
