@@ -2,7 +2,7 @@ package locators;
 
 import org.openqa.selenium.By;
 
-public class Locators {
+public class loginPage {
 
     //Login Page Locators
     public static final By USERNAME_FIELD = By.name("userNameOrEmailAddress");

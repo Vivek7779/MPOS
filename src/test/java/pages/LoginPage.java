@@ -6,9 +6,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import locators.Locators;
+import locators.loginPage;
 
-public class LoginPage extends Locators {
+public class LoginPage extends loginPage{
 
     private WebDriver driver;
     private WebDriverWait wait;
