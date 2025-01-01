@@ -10,8 +10,7 @@ on:
 
 jobs:
   build:
-    # Explicitly use ubuntu-22.04 to avoid transition issues
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     env:
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
@@ -44,25 +43,34 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable || echo "Chrome is already installed"
 
-          # Print Chrome version
+          # Debug: Print Chrome version
           echo "Google Chrome version:"
           google-chrome --version
 
           # Extract major version of Chrome
-          CHROME_MAJOR_VERSION=$(google-chrome --version | grep -oP '^\d+')
+          CHROME_MAJOR_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
+          if [ -z "$CHROME_MAJOR_VERSION" ]; then
+            echo "Error: Failed to extract Chrome major version."
+            exit 1
+          fi
           echo "Resolved Chrome major version: $CHROME_MAJOR_VERSION"
 
-          # Fetch the latest ChromeDriver version
+          # Fetch the latest ChromeDriver release version
           DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR_VERSION")
           if [ -z "$DRIVER_VERSION" ]; then
-            echo "Failed to fetch ChromeDriver version."
+            echo "Error: Failed to fetch ChromeDriver version. Verify Chrome installation."
             exit 1
           fi
           echo "Resolved ChromeDriver version: $DRIVER_VERSION"
 
           # Download and install ChromeDriver
           DRIVER_URL="https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
+          echo "ChromeDriver download URL: $DRIVER_URL"
           curl -s -L -o chromedriver.zip "$DRIVER_URL"
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to download ChromeDriver."
+            exit 1
+          fi
           unzip -o chromedriver.zip -d /usr/local/bin/
           sudo chmod +x /usr/local/bin/chromedriver
           rm chromedriver.zip
@@ -80,8 +88,8 @@ jobs:
           echo "File structure of the current directory:"
           ls -la
 
-      # Step 7: Run Maven Tests
-      - name: Run Maven Tests
+      # Step 7: Set up Maven and run tests
+      - name: Run Tests
         run: |
           set -x
           echo "Running Maven tests..."
