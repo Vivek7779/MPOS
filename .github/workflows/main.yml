@@ -10,7 +10,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Explicitly use ubuntu-22.04 to avoid transition issues
+    runs-on: ubuntu-22.04
 
     env:
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
@@ -33,48 +34,40 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 4: Install Google Chrome and ChromeDriver with Debugging
+      # Step 4: Install Google Chrome and ChromeDriver
       - name: Install Google Chrome and ChromeDriver
         run: |
-          set -x  # Enable shell debugging
-          echo "Starting installation of Google Chrome and ChromeDriver..."
+          set -x
+          echo "Installing Google Chrome and ChromeDriver..."
 
           # Update system and install Google Chrome
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable || echo "Chrome is already installed"
 
-          # Debug: Print Chrome version
+          # Print Chrome version
           echo "Google Chrome version:"
           google-chrome --version
 
           # Extract major version of Chrome
-          CHROME_VERSION=$(google-chrome --version | grep -oP '^\d+')
-          echo "Resolved Chrome major version: $CHROME_VERSION"
+          CHROME_MAJOR_VERSION=$(google-chrome --version | grep -oP '^\d+')
+          echo "Resolved Chrome major version: $CHROME_MAJOR_VERSION"
 
-          # Fetch the latest ChromeDriver release version
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          # Fetch the latest ChromeDriver version
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR_VERSION")
           if [ -z "$DRIVER_VERSION" ]; then
-            echo "Failed to fetch ChromeDriver version. Please verify the installed Chrome version."
+            echo "Failed to fetch ChromeDriver version."
             exit 1
           fi
           echo "Resolved ChromeDriver version: $DRIVER_VERSION"
 
-          # Debug: Print ChromeDriver download URL
-          DRIVER_URL="https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
-          echo "ChromeDriver download URL: $DRIVER_URL"
-
           # Download and install ChromeDriver
+          DRIVER_URL="https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
           curl -s -L -o chromedriver.zip "$DRIVER_URL"
-          if [ $? -ne 0 ]; then
-            echo "Failed to download ChromeDriver from $DRIVER_URL."
-            exit 1
-          fi
-          unzip -o chromedriver.zip -d /usr/bin/
-          sudo chmod +x /usr/bin/chromedriver
+          unzip -o chromedriver.zip -d /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
           rm chromedriver.zip
 
-          # Debug: Print ChromeDriver version
-          echo "ChromeDriver version:"
+          # Verify ChromeDriver installation
           chromedriver --version
 
       # Step 5: Debug Environment Variables
@@ -87,10 +80,10 @@ jobs:
           echo "File structure of the current directory:"
           ls -la
 
-      # Step 7: Set up Maven and run tests with Debugging
-      - name: Run Tests
+      # Step 7: Run Maven Tests
+      - name: Run Maven Tests
         run: |
-          set -x  # Enable shell debugging
+          set -x
           echo "Running Maven tests..."
           mvn clean test
 
